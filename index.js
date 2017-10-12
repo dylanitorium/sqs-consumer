@@ -48,6 +48,7 @@ function isAuthenticationError(err) {
  * @param {object} options.sqs
  * @param {number} options.visibilityTimeout
  * @param {number} options.waitTimeSeconds
+ * @param {number} options.timeout
  */
 function Consumer(options) {
   validate(options);
@@ -132,7 +133,7 @@ Consumer.prototype._handleSqsResponse = function (err, response) {
     async.each(response.Messages, this._processMessageBound, function () {
       // start polling again once all of the messages have been processed
       if (consumer.timeout) {
-          setTimeout(consumer._poll.bind(this), consumer.timeout);
+          setTimeout(consumer._poll.bind(consumer), consumer.timeout);
       } else {
           consumer._poll();
       }
