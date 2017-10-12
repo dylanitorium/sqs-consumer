@@ -62,6 +62,7 @@ function Consumer(options) {
   this.terminateVisibilityTimeout = options.terminateVisibilityTimeout || false;
   this.waitTimeSeconds = options.waitTimeSeconds || 20;
   this.authenticationErrorTimeout = options.authenticationErrorTimeout || 10000;
+  this.timeout = options.timeout || 0;
 
   this.sqs = options.sqs || new AWS.SQS({
     region: options.region || process.env.AWS_REGION || 'eu-west-1'
@@ -130,7 +131,11 @@ Consumer.prototype._handleSqsResponse = function (err, response) {
   if (response && response.Messages && response.Messages.length > 0) {
     async.each(response.Messages, this._processMessageBound, function () {
       // start polling again once all of the messages have been processed
-      consumer._poll();
+      if (consumer.timeout) {
+          setTimeout(consumer._poll.bind(this), consumer.timeout);
+      } else {
+          consumer._poll();
+      }
     });
   } else if (response && !response.Messages) {
     this.emit('empty');
